@@ -20,7 +20,6 @@ interface ImpressionConfig {
   experimentKey: string;
   variationKey: string | null;
   flagKey: string;
-  // ruleKey: string;
   ruleType: string;
   userId: string;
   userAttributes?: UserAttributes;

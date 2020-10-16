@@ -39,7 +39,6 @@ export var buildImpressionEvent = function(config) {
   var experimentKey = config.experimentKey;
   var variationKey = config.variationKey;
   var flagKey = config.flagKey;
-  // var ruleKey = config.ruleKey;
   var ruleType = config.ruleType;
   var userId = config.userId;
   var userAttributes = config.userAttributes;
