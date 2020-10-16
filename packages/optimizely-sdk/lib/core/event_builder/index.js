@@ -99,10 +99,14 @@ function getCommonEventParams(options) {
  * @return {Object}              Impression event params
  */
 function getImpressionEventParams(configObj, experimentId, variationId, ruleKey, ruleType, flagKey) {
+  let campaignId = null;
+  if (experimentId !== null) {
+    campaignId = projectConfig.getLayerId(configObj, experimentId);
+  }
   var impressionEventParams = {
     decisions: [
       {
-        campaign_id: projectConfig.getLayerId(configObj, experimentId),
+        campaign_id: campaignId,
         experiment_id: experimentId,
         variation_id: variationId,
         metadata: {
@@ -115,13 +119,14 @@ function getImpressionEventParams(configObj, experimentId, variationId, ruleKey,
     ],
     events: [
       {
-        entity_id: projectConfig.getLayerId(configObj, experimentId),
+        entity_id: campaignId,
         timestamp: fns.currentTimestamp(),
         key: ACTIVATE_EVENT_KEY,
         uuid: fns.uuid(),
       },
     ],
   };
+
   return impressionEventParams;
 }
 

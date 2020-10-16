@@ -2911,10 +2911,7 @@ describe('lib/optimizely', function() {
                 });
               });
 
-              it('should return false and send notification when sendFlagDecisions is not defined', function() {
-                var newConfig = optlyInstance.projectConfigManager.getConfig();
-                newConfig.sendFlagDecisions = undefined;
-                optlyInstance.projectConfigManager.getConfig.returns(newConfig);
+              it('should return false and send notification', function() {
                 var result = optlyInstance.isFeatureEnabled('test_feature', 'user1');
                 assert.strictEqual(result, false);
                 sinon.assert.calledWith(decisionListener, {
@@ -2928,47 +2925,6 @@ describe('lib/optimizely', function() {
                     sourceInfo: {},
                   },
                 });
-              });
-
-              it('should return false and send notification when sendFlagDecisions is set to false', function() {
-                var newConfig = optlyInstance.projectConfigManager.getConfig();
-                newConfig.sendFlagDecisions = false;
-                optlyInstance.projectConfigManager.getConfig.returns(newConfig);
-                var result = optlyInstance.isFeatureEnabled('test_feature', 'user1');
-                assert.strictEqual(result, false);
-                sinon.assert.calledWith(decisionListener, {
-                  type: DECISION_NOTIFICATION_TYPES.FEATURE,
-                  userId: 'user1',
-                  attributes: {},
-                  decisionInfo: {
-                    featureKey: 'test_feature',
-                    featureEnabled: false,
-                    source: DECISION_SOURCES.ROLLOUT,
-                    sourceInfo: {},
-                  },
-                });
-              });
-
-              it('should return false and dispatch an impression event when sendFlagDecisions is set to true', function() {
-                var newConfig = optlyInstance.projectConfigManager.getConfig();
-                newConfig.sendFlagDecisions = true;
-                optlyInstance.projectConfigManager.getConfig.returns(newConfig);
-                var result = optlyInstance.isFeatureEnabled('test_feature', 'user1');
-                assert.strictEqual(result, false);
-
-                var feature = optlyInstance.projectConfigManager.getConfig().featureKeyMap.test_feature;
-                // sinon.assert.calledOnce(eventDispatcher.dispatchEvent);
-                // sinon.assert.calledWith(decisionListener, {
-                //   type: DECISION_NOTIFICATION_TYPES.FEATURE,
-                //   userId: 'user1',
-                //   attributes: {},
-                //   decisionInfo: {
-                //     featureKey: 'test_feature',
-                //     featureEnabled: false,
-                //     source: DECISION_SOURCES.ROLLOUT,
-                //     sourceInfo: {},
-                //   },
-                // });
               });
             });
           });
@@ -4863,7 +4819,10 @@ describe('lib/optimizely', function() {
           });
         });
 
-        it('returns false and does not dispatch an event', function() {
+        it('returns false and does not dispatch an event when sendFlagDecisions is not defined', function() {
+          var newConfig = optlyInstance.projectConfigManager.getConfig();
+          newConfig.sendFlagDecisions = undefined;
+          optlyInstance.projectConfigManager.getConfig.returns(newConfig);
           var result = optlyInstance.isFeatureEnabled('test_feature', 'user1');
           assert.strictEqual(result, false);
           sinon.assert.notCalled(eventDispatcher.dispatchEvent);
@@ -4872,6 +4831,82 @@ describe('lib/optimizely', function() {
             LOG_LEVEL.INFO,
             'OPTIMIZELY: Feature test_feature is not enabled for user user1.'
           );
+        });
+
+        it('returns false and does not dispatch an event when sendFlagDecisions is set to false', function() {
+          var newConfig = optlyInstance.projectConfigManager.getConfig();
+          newConfig.sendFlagDecisions = false;
+          optlyInstance.projectConfigManager.getConfig.returns(newConfig);
+          var result = optlyInstance.isFeatureEnabled('test_feature', 'user1');
+          assert.strictEqual(result, false);
+          sinon.assert.notCalled(eventDispatcher.dispatchEvent);
+          sinon.assert.calledWith(
+            createdLogger.log,
+            LOG_LEVEL.INFO,
+            'OPTIMIZELY: Feature test_feature is not enabled for user user1.'
+          );
+        });
+
+        it('returns false and dispatch an event when sendFlagDecisions is set to true', function() {
+          var newConfig = optlyInstance.projectConfigManager.getConfig();
+          newConfig.sendFlagDecisions = true;
+          optlyInstance.projectConfigManager.getConfig.returns(newConfig);
+          var result = optlyInstance.isFeatureEnabled('test_feature', 'user1');
+          assert.strictEqual(result, false);
+          sinon.assert.calledOnce(eventDispatcher.dispatchEvent);
+          var expectedImpressionEvent = {
+            httpVerb: 'POST',
+            url: 'https://logx.optimizely.com/v1/events',
+            params: {
+              account_id: '572018',
+              project_id: '594001',
+              visitors: [
+                {
+                  snapshots: [
+                    {
+                      decisions: [
+                        {
+                          campaign_id: null,
+                          experiment_id: null,
+                          variation_id: null,
+                          metadata: {
+                            flag_key: 'test_feature',
+                            rule_key: '',
+                            rule_type: 'rollout',
+                            variation_key: '',
+                          },
+                        },
+                      ],
+                      events: [
+                        {
+                          entity_id: null,
+                          timestamp: 1509489766569,
+                          key: 'campaign_activated',
+                          uuid: 'a68cf1ad-0393-4e18-af87-efe8f01a7c9c',
+                        },
+                      ],
+                    },
+                  ],
+                  visitor_id: 'user1',
+                  attributes: [
+                    {
+                      entity_id: '$opt_bot_filtering',
+                      key: '$opt_bot_filtering',
+                      type: 'custom',
+                      value: true,
+                    },
+                  ],
+                },
+              ],
+              revision: '35',
+              client_name: 'node-sdk',
+              client_version: enums.NODE_CLIENT_VERSION,
+              anonymize_ip: true,
+              enrich_decisions: true,
+            },
+          };
+          var callArgs = eventDispatcher.dispatchEvent.getCalls()[0].args;
+          assert.deepEqual(callArgs[0], expectedImpressionEvent);
         });
       });
     });

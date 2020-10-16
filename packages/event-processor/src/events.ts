@@ -49,12 +49,12 @@ export interface ImpressionEvent extends BaseEvent {
   } | null
 
   experiment: {
-    id: string
+    id: string | null
     key: string
   } | null
 
   variation: {
-    id: string
+    id: string | null
     key: string
   } | null
 

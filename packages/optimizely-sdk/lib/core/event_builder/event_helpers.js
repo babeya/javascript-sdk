@@ -46,10 +46,18 @@ export var buildImpressionEvent = function(config) {
   var clientEngine = config.clientEngine;
   var clientVersion = config.clientVersion;
 
-  var variationId = projectConfig.getVariationIdFromExperimentAndVariationKey(configObj, experimentKey, variationKey);
-  var experimentId = projectConfig.getExperimentId(configObj, experimentKey);
-  var layerId = projectConfig.getLayerId(configObj, experimentId);
-
+  let variationId = '';
+  if (variationKey !== null) {
+    variationId = projectConfig.getVariationIdFromExperimentAndVariationKey(configObj, experimentKey, variationKey);
+  }
+  let experimentId = null;
+  if (experimentKey !== '') {
+    experimentId = projectConfig.getExperimentId(configObj, experimentKey);
+  }
+  let layerId = null;
+  if (experimentId !== null) {
+    layerId = projectConfig.getLayerId(configObj, experimentId);
+  }
   return {
     type: 'impression',
     timestamp: fns.currentTimestamp(),

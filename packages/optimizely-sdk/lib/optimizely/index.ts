@@ -276,7 +276,7 @@ export default class Optimizely {
    */
   private sendImpressionEvent(
     experimentKey: string,
-    variationKey: string | null,
+    variationKey: string,
     flagKey: string,
     ruleType: string,
     userId: string,
@@ -314,7 +314,7 @@ export default class Optimizely {
    */
   private emitNotificationCenterActivate(
     experimentKey: string,
-    variationKey: string | null,
+    variationKey: string,
     flagKey: string,
     ruleType: string,
     userId: string,
@@ -325,8 +325,13 @@ export default class Optimizely {
       return;
     }
 
-    const variationId = projectConfig.getVariationIdFromExperimentAndVariationKey(configObj, experimentKey, variationKey);
-    const experimentId = projectConfig.getExperimentId(configObj, experimentKey);
+    let variationId = null;
+    let experimentId = null;
+    if (experimentKey !=='' && variationKey !== '') {
+      variationId = projectConfig.getVariationIdFromExperimentAndVariationKey(configObj, experimentKey, variationKey);
+      experimentId = projectConfig.getExperimentId(configObj, experimentKey);
+    }
+
     const impressionEventOptions = {
       attributes: attributes,
       clientEngine: this.clientEngine,
@@ -680,7 +685,8 @@ export default class Optimizely {
         if (decision.experiment !== null) {
           experimentKey = decision.experiment.key;
         }
-        let variationKey = null;
+
+        let variationKey = '';
         if (variation) {
           variationKey = variation.key
         }

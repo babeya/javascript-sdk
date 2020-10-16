@@ -51,7 +51,7 @@ namespace Visitor {
     flag_key: string;
     rule_key: string;
     rule_type: string;
-    variation_key: string | null;
+    variation_key: string;
   }
 
   export type SnapshotEvent = {
